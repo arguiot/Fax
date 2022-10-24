@@ -16,4 +16,52 @@ let test =
     let s_init = Test.get_storage addr in
     let () = Test.log(s_init) in
 
+    // MARK: - Test 1: Register a printer
+    let test_register =
+        let () = Test.log("Test 1: Register a printer") in
+
+        let x : Fax.parameter contract = Test.to_contract addr in
+
+        let () = Test.set_source alice in
+
+        let register_args: Fax.Parameters.Types.register = {
+            cost= 100_000mutez;
+        } in
+        let _ = Test.transfer_to_contract_exn x (Register(register_args)) 10mutez in
+
+        let s = Test.get_storage addr in
+        let response : bool = match Map.find_opt alice s.printers with
+            | Some _ -> true
+            | None -> false
+        in
+        let () = Test.log(s) in
+        let () = assert (response) in
+
+        ()
+    in
+
+    // MARK: - Test 2: Register an already registered printer
+    let test_register_already_registered =
+        let () = Test.log("Test 2: Register an already registered printer") in
+
+        let x : Fax.parameter contract = Test.to_contract addr in
+
+        let () = Test.set_source alice in
+
+        let register_args: Fax.Parameters.Types.register = {
+            cost= 100_000mutez;
+        } in
+        let result = Test.transfer_to_contract x (Register(register_args)) 10mutez in
+
+        let success = match result with
+            | Success _ -> true
+            | Fail _ -> false
+        in
+
+        let () = assert (not success) in
+        let () = Test.log("Test 2: Register an already registered printer - SUCCESS") in
+
+        ()
+    in
+
     ()
