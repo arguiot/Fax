@@ -14,15 +14,11 @@ let register (param, store : Parameters.Types.register * storage) : return =
     } in
     let sender = Tezos.get_sender () in
     // Check if the sender is already registered
-    let store = match Map.find_opt sender store.printers with
-        | Some _ -> (failwith "SENDER_ALREADY_REGISTERED" : storage)
-        | None -> store
-    in
-
-    let store = { store with users = Set.add sender store.users } in
-    let store = { store with printers = Map.add sender printer store.printers } in
-    
-    ([], store)
+    if (Big_map.mem sender store.printers) then
+        (failwith "SENDER_ALREADY_REGISTERED" : return)
+    else
+        let store = { store with printers = Big_map.add sender printer store.printers } in
+        ([], store)
 
 // MARK: - Main
 let main (ep, store : parameter * storage) : return =

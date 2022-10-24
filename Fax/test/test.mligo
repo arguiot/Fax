@@ -4,10 +4,9 @@ let test =
     let alice: address = Test.nth_bootstrap_account 0 in
 
     let init_storage : Fax.Storage.Types.t = {
-        users= Set.empty;
-        printers= Map.empty;
+        printers= Big_map.empty;
 
-        account_balances= Map.empty;
+        account_balances= Big_map.empty;
         max_printer_size= 100n;
     } in
 
@@ -30,7 +29,7 @@ let test =
         let _ = Test.transfer_to_contract_exn x (Register(register_args)) 10mutez in
 
         let s = Test.get_storage addr in
-        let response : bool = match Map.find_opt alice s.printers with
+        let response : bool = match Big_map.find_opt alice s.printers with
             | Some _ -> true
             | None -> false
         in

@@ -11,10 +11,9 @@ module Types = struct
     }
     type t = {
         // MARK: - Printers
-        users : address set;
-        printers : (address, printer) map;
+        printers : (address, printer) big_map;
         // MARK: - Balance
-        account_balances : (address, tez) map;
+        account_balances : (address, tez) big_map;
         // MARK: - Settings
         max_printer_size : nat;
     }
