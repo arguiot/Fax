@@ -35,12 +35,13 @@ let test =
         in
         let () = Test.log(s) in
         let () = assert (response) in
+        let () = Test.log("Test 1: Register a printer - SUCCESS") in
 
         ()
     in
 
     // MARK: - Test 2: Register an already registered printer
-    let test_register_already_registered =
+    let _test_register_already_registered =
         let () = Test.log("Test 2: Register an already registered printer") in
 
         let x : Fax.parameter contract = Test.to_contract addr in
@@ -63,4 +64,51 @@ let test =
         ()
     in
 
+    // MARK: - Test 3: Unregister a printer
+    let _test_unregister =
+        let () = Test.log("Test 3: Unregister a printer") in
+
+        let x : Fax.parameter contract = Test.to_contract addr in
+
+        let () = Test.set_source alice in
+
+        let result = Test.transfer_to_contract x Unregister 10mutez in
+
+        let success = match result with
+            | Success _ -> true
+            | Fail _ -> false
+        in
+
+        let () = assert (success) in
+
+        let s = Test.get_storage addr in
+        
+        let () = Test.log(s) in
+
+        let () = Test.log("Test 3: Unregister a printer - SUCCESS") in
+
+        ()
+    in
+
+    // MARK: - Test 4: Unregister an already unregistered printer
+    let _test_unregister_already_unregistered =
+        let () = Test.log("Test 4: Unregister an already unregistered printer") in
+
+        let x : Fax.parameter contract = Test.to_contract addr in
+
+        let () = Test.set_source alice in
+
+        let result = Test.transfer_to_contract x Unregister 10mutez in
+
+        let success = match result with
+            | Success _ -> true
+            | Fail _ -> false
+        in
+
+        let () = assert (not success) in
+        let () = Test.log("Test 4: Unregister an already unregistered printer - SUCCESS") in
+
+        ()
+    in
+    
     ()

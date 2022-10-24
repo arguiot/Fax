@@ -33,14 +33,14 @@ clean:
 	@echo "Removing Michelson files"
 	@rm -f compiled/*.tz compiled/*.json
 
-test: test_ligo test_ligo_bytes
+test: test_ligo_registration test_ligo_print
 
-test_ligo: test/test.mligo
-	@echo "Running integration tests"
+test_ligo_registration: test/test_registration.mligo
+	@echo "Running integration tests (registration)"
 	@$(ligo_compiler) run test $^ $(protocol_opt)
 
-test_ligo_bytes: test/test_bytes.mligo
-	@echo "Running integration tests (bytes conversion)"
+test_ligo_print: test/test_print.mligo
+	@echo "Running integration tests (fax print)"
 	@$(ligo_compiler) run test $^ $(protocol_opt)
 
 deploy: node_modules deploy.js
