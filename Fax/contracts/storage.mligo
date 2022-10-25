@@ -1,10 +1,6 @@
 // Records types
 module Types = struct
-    type status = Queued | Printed
-    type message = {
-        content: string;
-        status: status;
-    }
+    type message = string
     type printer = {
         stack : message list;
         cost : tez;

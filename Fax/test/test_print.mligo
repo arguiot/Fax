@@ -3,6 +3,7 @@
 // Tests
 let test =
     let alice: address = Test.nth_bootstrap_account 0 in
+    let bob: address = Test.nth_bootstrap_account 1 in
 
     let init_storage : Fax.Storage.Types.t = {
         printers= Big_map.empty;
@@ -34,7 +35,29 @@ let test =
     let () = assert (response) in
 
     // Tests
+    let test_add_job =
+        let () = Test.log("Test 1: Send a job to the printer") in
+        let () = Test.set_source bob in
+        let add_job_args: Fax.Parameters.Types.print = {
+            printer= alice;
+            message= "Hello World";
+        } in
+        let result = Test.transfer_to_contract x (AddJob(add_job_args)) 100_000mutez in
 
-    let () = Test.log("Test finished") in
+        let success = match result with
+            | Success _ -> true
+            | _ -> false
+        in
+
+        let () = assert (success) in
+
+        let s = Test.get_storage addr in
+        
+        let () = Test.log(s) in
+
+        let () = Test.log("Test 1: Send a job to the printer - SUCCESS") in
+        ()
+
+    in
     
     ()

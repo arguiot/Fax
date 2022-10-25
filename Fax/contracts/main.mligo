@@ -54,9 +54,41 @@ let unregister (store : storage) : return =
 
     (op, store)
 
+
+let add_job (param, store : Parameters.Types.print * storage) : return =
+    // Check if the printer is registered
+    let printer: Storage.Types.printer option = Big_map.find_opt param.printer store.printers in
+    let op, store = match printer with
+    | None -> (failwith "PRINTER_NOT_REGISTERED" : return)
+    | Some printer ->
+        // Check if the sender sent enough funds to cover the cost
+        let amount = Tezos.get_amount () in
+        if (amount < printer.cost) then
+            (failwith "NOT_ENOUGH_FUNDS" : return)
+        else
+            // Add the job to the printer's stack
+            let stack: string list = printer.stack in
+            let message: string = param.message in
+            let printer: Storage.Types.printer = { printer with stack = message :: stack } in
+            let printers = Big_map.update param.printer (Some printer) store.printers in
+            let store = { store with printers = printers } in
+            // Update the account balances for the printer
+            let balance = Big_map.find_opt param.printer store.account_balances in
+            let balance = match balance with
+            | None -> 0tez
+            | Some (balance) -> balance + amount
+            in
+            let store = { store with account_balances = Big_map.update param.printer (Some balance) store.account_balances } in
+
+            ([], store)
+    in
+
+    (op, store)
+
 // MARK: - Main
 let main (ep, store : parameter * storage) : return =
     match ep with
     | Register(p) -> register (p, store)
     | Unregister -> unregister store
-    | Print(_p) -> (failwith "Not implemented" : return)
+    | AddJob(p) -> add_job (p, store)
+    | JobDone -> (failwith "NOT_IMPLEMENTED" : return)
