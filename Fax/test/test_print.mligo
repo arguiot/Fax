@@ -1,4 +1,5 @@
 #import "../contracts/main.mligo" "Fax"
+#import "../contracts/utils.mligo" "Utils"
 
 // Tests
 let test =
@@ -24,7 +25,7 @@ let test =
     let register_args: Fax.Parameters.Types.register = {
         cost= 100_000mutez;
     } in
-    let _ = Test.transfer_to_contract_exn x (Register(register_args)) 10mutez in
+    let _ = Test.transfer_to_contract_exn x (Register(register_args)) 0mutez in
 
     let s = Test.get_storage addr in
     let response : bool = match Big_map.find_opt alice s.printers with
@@ -35,17 +36,19 @@ let test =
     let () = assert (response) in
 
     // Tests
-    let test_add_job =
-        let () = Test.log("Test 1: Send a job to the printer") in
+    let test_add_job (n: nat) =
+        let () = Test.log("Test " ^ Utils.int_to_string (int(n)) ^ ": Send a job to the printer") in
         let () = Test.set_source bob in
         let add_job_args: Fax.Parameters.Types.print = {
             printer= alice;
-            message= "Hello World";
+            message= "Hello World " ^ Utils.int_to_string (int(n));
         } in
         let result = Test.transfer_to_contract x (AddJob(add_job_args)) 100_000mutez in
 
         let success = match result with
-            | Success _ -> true
+            | Success g -> 
+            let () = Test.log("Success: " ^ Utils.int_to_string (int(g))) in
+            true
             | _ -> false
         in
 
@@ -55,9 +58,58 @@ let test =
         
         let () = Test.log(s) in
 
-        let () = Test.log("Test 1: Send a job to the printer - SUCCESS") in
-        ()
+        // Check the contract balance
+        let ctr = Test.to_contract addr in
+        let address = Tezos.address ctr in
+        let contract_balance = Test.get_balance address in
+        let () = Test.log(contract_balance) in
+        let () = assert (contract_balance = 100_000mutez * n) in
 
+        let () = Test.log("Test " ^ Utils.int_to_string (int(n)) ^ ": Send a job to the printer - SUCCESS") in
+        ()
     in
-    
+    // Test 1
+    let test1 = test_add_job(1n) in
+    // Test 2
+    let test2 = test_add_job(2n) in
+
+    // Get the job
+    let test_get_job (n: nat) =
+        let () = Test.log("Test " ^ Utils.int_to_string (int(n)) ^ ": Get the job") in
+        let () = Test.set_source alice in
+
+        // First, check how many jobs are in the queue
+        let s = Test.get_storage addr in
+        let jobs = match Big_map.find_opt alice s.printers with
+            | Some printer -> printer.stack
+            | None -> []
+        in
+        let jobs_count = List.length jobs in
+
+        let result = Test.transfer_to_contract x GetJob 0mutez in
+
+        let success = match result with
+            | Success _ -> true
+            | _ -> false
+        in
+
+        let () = assert (success) in
+        // Check that the job was removed from the queue
+        let s = Test.get_storage addr in
+        let jobs = match Big_map.find_opt alice s.printers with
+            | Some printer -> printer.stack
+            | None -> []
+        in
+        let jobs_count_after = List.length jobs in
+
+        let () = assert ((int jobs_count_after) = jobs_count - 1n) in
+        
+        let () = Test.log(s) in
+
+        let () = Test.log("Test " ^ Utils.int_to_string (int(n)) ^ ": Get the job - SUCCESS") in
+        ()
+    in
+    // Test 3
+    let test3 = test_get_job(3n) in
+
     ()

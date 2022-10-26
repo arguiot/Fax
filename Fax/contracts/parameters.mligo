@@ -10,5 +10,5 @@ module Types = struct
     Register of register |
     Unregister |
     AddJob of print |
-    JobDone
+    GetJob
 end
