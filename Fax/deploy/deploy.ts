@@ -1,9 +1,7 @@
 import { InMemorySigner } from '@taquito/signer';
 import { TezosToolkit, MichelsonMap } from '@taquito/taquito';
-import random from '../compiled/random.json';
+import fax from '../compiled/fax.json';
 import * as dotenv from 'dotenv'
-import { buf2hex } from "@taquito/utils";
-import metadata from "./metadata.json";
 
 dotenv.config(({path:__dirname+'/.env'}))
 
@@ -11,55 +9,37 @@ const rpc = process.env.RPC; //"http://127.0.0.1:8732"
 const pk: string = process.env.ADMIN_PK || undefined;
 const Tezos = new TezosToolkit(rpc);
 
-let random_address = process.env.RANDOM_CONTRACT_ADDRESS || undefined;
-const result = undefined
-const init_seed = 3268854739249
-const participants: Array<string> = [
-    'tz1KeYsjjSCLEELMuiq1oXzVZmuJrZ15W4mv',
-    'tz1MBWU1WkszFfkEER2pgn4ATKXE9ng7x1sR',
-    'tz1TDZG4vFoA2xutZMYauUnS4HVucnAGQSpZ',
-    'tz1fi3AzSELiXmvcrLKrLBUpYmq1vQGMxv9p',
-    'tz1go7VWXhhkzdPMSL1CD7JujcqasFJc2hrF'
-  ]
+let fax_address = process.env.FAX_CONTRACT_ADDRESS || undefined;
 
 
 async function orig() {
 
-    let random_store = {
-        'metadata': MichelsonMap.fromLiteral({
-            "": buf2hex(Buffer.from("tezos-storage:contents")),
-            contents: buf2hex(Buffer.from(JSON.stringify(metadata))),
-        }),
-        'participants' : participants,
-        'locked_tez' : new MichelsonMap(),
-        'secrets' : new MichelsonMap(),
-        'decoded_payloads': new MichelsonMap(),
-        'result_nat' : result,
-        'last_seed' : init_seed,
-        'max' : 20,
-        'min' : 1
+    let fax_store = {
+        printers: new MichelsonMap(),
+        account_balances: new MichelsonMap(),
+        max_printer_size: 100, // 100 jobs per printer is already quite a lot
     }
 
     try {
-        // Originate an Random contract
+        // Originate an Fax contract
         const signer = await InMemorySigner.fromSecretKey(
             pk
         );
 
         Tezos.setProvider({ signer: signer })
-        // Originate an Random contract
-        if (random_address === undefined) {
-            const random_originated = await Tezos.contract.originate({
-                code: random,
-                storage: random_store,
+        // Originate an Fax contract
+        if (fax_address === undefined) {
+            const fax_originated = await Tezos.contract.originate({
+                code: fax,
+                storage: fax_store,
             })
-            console.log(`Waiting for RANDOM ${random_originated.contractAddress} to be confirmed...`);
-            await random_originated.confirmation(2);
-            console.log('confirmed RANDOM: ', random_originated.contractAddress);
-            random_address = random_originated.contractAddress;              
+            console.log(`Waiting for FAX ${fax_originated.contractAddress} to be confirmed...`);
+            await fax_originated.confirmation(2);
+            console.log('confirmed FAX: ', fax_originated.contractAddress);
+            fax_address = fax_originated.contractAddress;              
         }
        
-        console.log("./tezos-client remember contract RANDOM", random_address)
+        console.log("./tezos-client remember contract FAX", fax_address)
         // console.log("tezos-client transfer 0 from ", admin, " to ", advisor_address, " --entrypoint \"executeAlgorithm\" --arg \"Unit\"")
 
     } catch (error: any) {
