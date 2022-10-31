@@ -1,5 +1,5 @@
 #import "../contracts/main.mligo" "Fax"
-#import "../contracts/utils.mligo" "Utils"
+#import "./utils.mligo" "Utils"
 
 // Tests
 let test =
